@@ -1,0 +1,51 @@
+const express = require("express");
+const http = require("http");
+const app = express();
+const { sequelize } = require("../src/sequelize/models");
+require("dotenv").config();
+const colors = require("colors");
+const cors = require("cors");
+const bodyParser = require("body-parser");
+const cookieParser = require("cookie-parser");
+const ridersAuthRoute = require("./routes/ridersAuth.routes");
+const vendorsAuthRoute = require("./routes/vendorsAuth.routes");
+const helmet = require("helmet");
+
+
+app.use(cookieParser());
+
+app.use(
+  cors({
+    credentials: true,
+    // methods: ["GET", "POST", "DELETE", "PUT"],
+    origin: process.env.FRONTEND_URL,
+  })
+);
+
+app.use(bodyParser.text());
+app.use(express.json({ limit: "5mb" }));
+app.use(express.urlencoded({ limit: "5mb", extended: true }));
+app.use(helmet());
+
+const port = process.env.PORT || 4040;
+const startServer = async () => {
+  try {
+    // Try to authenticate the Sequelize connection
+    await sequelize.authenticate();
+    // await initializeRedisClient();
+    console.log("Database connection established successfully.");
+
+    // Start the server if connection is successful
+    const server = http.createServer(app);
+    app.listen(port, () => {
+      console.log(colors.random("Application listening on port 4040"));
+    });
+  } catch (error) {
+    console.error("Unable to connect to the database:", error);
+  }
+};
+
+app.use("/api/v1/authentication-service/riders", ridersAuthRoute);
+app.use("/api/v1/authentication-service/vendors", vendorsAuthRoute);
+
+startServer();
