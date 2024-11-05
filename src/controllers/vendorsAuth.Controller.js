@@ -1,11 +1,17 @@
 const { sequelize, vendorModel } = require("../sequelize/models");
-const jwt = require("jsonwebtoken");
+const JWT = require("jsonwebtoken");
 const path = require("path");
 const multer = require("multer");
 const cloudinary = require("cloudinary").v2;
 const responseHandler = require("../handlers/response.handler");
-// const sequelize = require("../config/dbConfig");
+const bcrypt = require("bcrypt")
 require("dotenv").config();
+const sendEmail = require("../config/mailer");
+const randomString = require("../helpers/randomString");
+
+
+const randomPassword = randomString();
+
 
 class vendorsAuth {
   static async signup(req, res) {
@@ -21,6 +27,7 @@ class vendorsAuth {
       accepted_privacy_policy,
     } = req.body;
     try {
+      const hasshedPassword = await bcrypt.hash(randomPassword, 12)
       const newVendor = await vendorModel.create(
         {
           firstname: firstname,
@@ -31,25 +38,22 @@ class vendorsAuth {
           legal_business_address: legal_business_address,
           agreed_to_regular_updates: agreed_to_regular_updates,
           accepted_privacy_policy: accepted_privacy_policy,
+          password:hasshedPassword
         },
         { transaction: t }
       );
       console.log(newVendor);
 
-      // if (newVendor) {
-      //   const data = await VendorModel.findOne({
-      //     attributes: ["signup_upload_temp_id"],
-      //     where: { email: email },
-      //     transaction: t,
-      //   });
-
-      //   if (data) {
-      //     const tempId = data.signup_upload_temp_id;
-      //     console.log(data, "usedrftgyhbvcf");
-      //     this.setCookieForImmediateUpload(req, res, tempId);
-      //   }
-      // }
-
+      const data = await vendorModel.findOne({
+        where: { email: email },
+        transaction: t,
+      });
+      const message = `your password is ${randomPassword}`;
+      await sendEmail({
+        receiverEmail: data.email,
+        subject: "Email Verification",
+        message: message,
+      });
       await t.commit();
       return responseHandler.created(res);
     } catch (error) {
@@ -84,6 +88,58 @@ class vendorsAuth {
         MESSAGE: "An unexpected error occurred",
         error: error.message,
       });
+    }
+  };
+
+
+  static async signin(req, res) {
+    try {
+      const { email, password } = req.body;
+
+      const vendor = await vendorModel.findOne({
+        where: { email: email },
+      });
+
+      if (!vendor) {
+        return responseHandler.notfound(res, "Incorrect Email or Password");
+      }
+
+      const valid = await bcrypt.compare(password, vendor.password);
+
+      if (!valid) {
+        return responseHandler.notfound(res, "Incorrect Email or Password");
+      }
+
+      const accessToken = JWT.sign(
+        { PUID: vendor.public_unique_id },
+        process.env.ACCESS_TOKEN_SECRET_KEY,
+        { algorithm: "HS256", expiresIn: "15m" }
+      );
+      const refreshToken = JWT.sign(
+        {},
+        process.env.REFRESH_TOKEN_SECRET_KEY,
+        {
+          expiresIn: "1d",
+          algorithm: "HS256",
+        }
+      );
+     
+      
+      const accessTokenCookie = res.cookie("accessToken", accessToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+      });
+
+      const refreshTokenCookie = res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+      });
+
+      return res.status(200).json({ success: "true" });
+    } catch (error) {
+      return res.status(500).json({ error });
     }
   }
 }

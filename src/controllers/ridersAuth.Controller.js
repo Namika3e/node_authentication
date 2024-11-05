@@ -10,6 +10,7 @@ const sendEmail = require("../config/mailer");
 require("dotenv").config();
 const fs = require("fs");
 
+
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -252,43 +253,59 @@ class RidersAuth {
       });
 
       if (!rider) {
-        responseHandler.notfound(res, "Incorrect Email or Password");
+        return responseHandler.notfound(res, "Incorrect Email or Password");
       }
 
       const valid = await bcrypt.compare(password, rider.password);
 
       if (!valid) {
-        responseHandler.notfound(res, "Incorrect Email or Password");
+        return responseHandler.notfound(res, "Incorrect Email or Password");
       }
 
-      const secret = fs.readFileSync("./src/certs/private.pem");
-
-      const payload = { PUID: rider.public_unique_id };
-
-      const authToken = JWT.sign(payload, secret, {
-        expiresIn: "15m",
-        algorithm: "RS256",
+      const accessToken = JWT.sign(
+        { PUID: rider.public_unique_id },
+        process.env.ACCESS_TOKEN_SECRET_KEY,
+        { algorithm: "HS256", expiresIn: "15m" }
+      );
+      const refreshToken = JWT.sign(
+        {},
+        process.env.REFRESH_TOKEN_SECRET_KEY,
+        {
+          expiresIn: "1d",
+          algorithm: "HS256",
+        }
+      );
+     
+      
+      const accessTokenCookie = res.cookie("accessToken", accessToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
       });
 
-      try {
-        const cookie = res.cookie("authToken", authToken, {
-          httpOnly: true,
-          secure: true,
-          sameSite: "none",
-        });
-      } catch (err) {
-        console.log(err, "error setting cookie");
-      }
+      const refreshTokenCookie = res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+      });
 
-      return res.status(200).json({ message: "logged in!" });
+      return res.status(200).json({ success: "true" });
     } catch (error) {
-      return res.status(500).json({ error: "error", error });
+      return res.status(500).json({ error });
     }
   }
 
-  static async getRefreshToken() {
-    const uniqueId = rider.public_unique_id;
-    const refreshToken = JWT.sign();
+  static async getNewRefreshToken(res) {
+    const refreshToken = JWT.sign({}, process.env.REFRESH_TOKEN_SECRET_KEY, {
+      expiresIn: "1d",
+      algorithm: "HS256",
+    });
+
+    const cookie = res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    });
   }
 }
 

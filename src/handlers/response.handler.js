@@ -35,7 +35,7 @@ const responseHandler = {
   },
 
   notfound: (res, message) => {
-    res.status(404).json({
+    return res.status(404).json({
       status: "failure",
       message,
     });

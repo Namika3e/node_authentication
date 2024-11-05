@@ -11,14 +11,13 @@ const ridersAuthRoute = require("./routes/ridersAuth.routes");
 const vendorsAuthRoute = require("./routes/vendorsAuth.routes");
 const helmet = require("helmet");
 
-
 app.use(cookieParser());
 
 app.use(
   cors({
     credentials: true,
     // methods: ["GET", "POST", "DELETE", "PUT"],
-    origin: process.env.FRONTEND_URL,
+    origin: ["http://localhost:5173", "http://localhost:8080"]
   })
 );
 

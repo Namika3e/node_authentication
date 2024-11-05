@@ -9,5 +9,6 @@ const catchMulterErrors = require("../middleware/multer.error");
 const router = express.Router();
 
 router.post("/signup", (req, res) => vendorAuth.signup(req, res));
+router.post("/signin", (req, res) => vendorAuth.signin(req, res));
 
 module.exports = router;
