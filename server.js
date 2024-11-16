@@ -2,14 +2,14 @@ require('dotenv').config();
 const express = require("express");
 const http = require("http");
 const app = express();
-const { sequelize } = require("../src/sequelize/models");
+const { sequelize } = require("./src/sequelize/models");
 require("dotenv").config();
 const colors = require("colors");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
-const ridersAuthRoute = require("./routes/ridersAuth.routes");
-const vendorsAuthRoute = require("./routes/vendorsAuth.routes");
+const ridersAuthRoute = require("./src/routes/ridersAuth.routes");
+const vendorsAuthRoute = require("./src/routes/vendorsAuth.routes");
 const helmet = require("helmet");
 
 app.use(cookieParser());
