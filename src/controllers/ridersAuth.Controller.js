@@ -4,7 +4,7 @@ const path = require("path");
 const multer = require("multer");
 const cloudinary = require("cloudinary").v2;
 const responseHandler = require("../handlers/response.handler");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const randomString = require("../helpers/randomString");
 const sendEmail = require("../config/mailer");
 require("dotenv").config();
