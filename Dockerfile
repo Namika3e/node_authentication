@@ -17,4 +17,4 @@ COPY . .
 # EXPOSE 4040
 
 # Step 7: Define the command to start the app
-CMD ["npm", "run", "dev"]
+CMD ["npm", "run", "start"]
