@@ -18,7 +18,7 @@ app.use(
   cors({
     credentials: true,
     // methods: ["GET", "POST", "DELETE", "PUT"],
-    origin: ["http://localhost:5173", "http://localhost:8080"] 
+    origin: ["http://localhost:5173", "http://localhost:8080", "https://havestav1.netlify.app"] 
   })
 );
 
