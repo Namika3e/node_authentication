@@ -1,4 +1,4 @@
-require('dotenv').config();
+require("dotenv").config();
 const express = require("express");
 const http = require("http");
 const app = express();
@@ -18,7 +18,12 @@ app.use(
   cors({
     credentials: true,
     methods: ["GET", "POST", "DELETE", "PUT"],
-    origin: ["http://localhost:5173", "http://localhost:8080", "https://havestav1.netlify.app", "https://nginx-configuration-4f3p.onrender.com"] 
+    origin: [
+      // "http://localhost:5173",
+      "http://localhost:8080",
+      // "https://havestav1.netlify.app",
+      "https://nginx-configuration-4f3p.onrender.com",
+    ],
   })
 );
 
