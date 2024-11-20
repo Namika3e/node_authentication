@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon server.js",
-    "start":"node server.js"
+    "start": "node server.js"
   },
   "author": "Charles Amobeda",
   "license": "ISC",
@@ -14,7 +14,6 @@
     "@redis/json": "^1.0.7",
     "@sequelize/postgres": "^7.0.0-alpha.41",
     "bcryptjs": "^2.4.3",
-    "body-parser": "^1.20.2",
     "cloudinary": "^2.4.0",
     "colors": "^1.4.0",
     "cookie-parser": "^1.4.6",

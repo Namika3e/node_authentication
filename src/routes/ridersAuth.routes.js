@@ -27,6 +27,6 @@ const router = express.Router();
 
 router.post("/signup", testing, (req, res) => RidersAuth.signup(req, res));
 router.post("/upload",  upload.array('images', 2), catchMulterErrors, (req,res)=>RidersAuth.uploadToCloudinaryAndDatabase(req,res))
-router.post("/signin", testing, (req, res) => RidersAuth.signin(req, res));
+router.post("/signin", (req, res) => RidersAuth.signin(req, res));
 
 module.exports = router;

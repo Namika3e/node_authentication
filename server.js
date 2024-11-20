@@ -12,24 +12,27 @@ const ridersAuthRoute = require("./src/routes/ridersAuth.routes");
 const vendorsAuthRoute = require("./src/routes/vendorsAuth.routes");
 const helmet = require("helmet");
 
-app.use(cookieParser());
-
 app.use(
   cors({
-    credentials: true,
-    methods: ["GET", "POST", "DELETE", "PUT"],
     origin: [
       // "http://localhost:5173",
-      "http://localhost:8080",
+      // "http://localhost:8080",
       // "https://havestav1.netlify.app",
       "https://nginx-configuration-4f3p.onrender.com",
+      "http://localhost:8080/auth_service/"
     ],
+    credentials: true,
+    methods: ["GET", "POST", "DELETE", "PUT"],
+
   })
 );
 
-app.use(bodyParser.text());
-app.use(express.json({ limit: "5mb" }));
-app.use(express.urlencoded({ limit: "5mb", extended: true }));
+app.use(cookieParser());
+
+
+
+app.use(express.json());
+// app.use(express.urlencoded({ extended: true }));
 app.use(helmet());
 
 const port = process.env.PORT || 4040;
@@ -52,5 +55,8 @@ const startServer = async () => {
 
 app.use("/auth_service/api/riders", ridersAuthRoute);
 app.use("/auth_service/api/vendors", vendorsAuthRoute);
+
+
+
 
 startServer();
