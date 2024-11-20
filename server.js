@@ -17,8 +17,8 @@ app.use(cookieParser());
 app.use(
   cors({
     credentials: true,
-    // methods: ["GET", "POST", "DELETE", "PUT"],
-    origin: ["http://localhost:5173", "http://localhost:8080", "https://havestav1.netlify.app"] 
+    methods: ["GET", "POST", "DELETE", "PUT"],
+    origin: ["http://localhost:5173", "http://localhost:8080", "https://havestav1.netlify.app", "https://nginx-configuration-4f3p.onrender.com"] 
   })
 );
 
@@ -45,7 +45,7 @@ const startServer = async () => {
   }
 };
 
-app.use("/api/v1/authentication-service/riders", ridersAuthRoute);
-app.use("/api/v1/authentication-service/vendors", vendorsAuthRoute);
+app.use("/auth_service/api/riders", ridersAuthRoute);
+app.use("/auth_service/api/vendors", vendorsAuthRoute);
 
 startServer();
