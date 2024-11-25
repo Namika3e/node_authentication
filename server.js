@@ -5,26 +5,24 @@ const app = express();
 const { sequelize } = require("./src/sequelize/models");
 require("dotenv").config();
 const colors = require("colors");
-const cors = require("cors");
-const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const ridersAuthRoute = require("./src/routes/ridersAuth.routes");
 const vendorsAuthRoute = require("./src/routes/vendorsAuth.routes");
 const helmet = require("helmet");
 
-app.use(
-  cors({
-    origin: [
-      "http://localhost:5173",
-      "http://localhost:8080",
-      "https://havestav1.netlify.app",
-      "https://nginx-configuration-4f3p.onrender.com",
-    ],
-    credentials: true,
-    methods: ["GET", "POST", "DELETE", "PUT"],
+// app.use(
+//   cors({
+//     origin: [
+//       "http://localhost:5173",
+//       "http://localhost:8080",
+//       "https://havestav1.netlify.app",
+//       "https://nginx-configuration-4f3p.onrender.com",
+//     ],
+//     credentials: true,
+//     methods: ["GET", "POST", "DELETE", "PUT"],
 
-  })
-);
+//   })
+// );
 
 app.use(cookieParser());
 
