@@ -15,11 +15,10 @@ const helmet = require("helmet");
 app.use(
   cors({
     origin: [
-      // "http://localhost:5173",
-      // "http://localhost:8080",
-      // "https://havestav1.netlify.app",
+      "http://localhost:5173",
+      "http://localhost:8080",
+      "https://havestav1.netlify.app",
       "https://nginx-configuration-4f3p.onrender.com",
-      "http://localhost:8080/auth_service/"
     ],
     credentials: true,
     methods: ["GET", "POST", "DELETE", "PUT"],
