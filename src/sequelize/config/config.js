@@ -14,7 +14,10 @@ module.exports = {
         require: true,
         rejectUnauthorized: false
       }
-  
+    },
+    pool:{
+      max:10,
+      acquire:30000
     }
   },
   // test: {

@@ -16,7 +16,7 @@ const router = express.Router();
 //       cb(null, `${Date.now()}${path.extname(file.originalname)}` )
 //     }
 //   });
-  const upload = multer({ storage: RidersAuth.multerSetup(), limits: { fileSize: 5 * 1024 * 1024 }, });
+  const upload = multer({ storage: RidersAuth.multerSetup(), limits: { fileSize: 2 * 1024 * 1024 }, });
 
   // const uploadArray  = (name ,number) => {
   //   return upload.array(name, number) (req,res, function(err) {
@@ -26,7 +26,11 @@ const router = express.Router();
 
 
 router.post("/signup", testing, (req, res) => RidersAuth.signup(req, res));
-router.post("/upload",  upload.array('images', 2), catchMulterErrors, (req,res)=>RidersAuth.uploadToCloudinaryAndDatabase(req,res))
+router.post("/upload",  upload.fields([{name:'vehicle_image',maxCount:1 },{name:'ID_image',maxCount:1 } ]), catchMulterErrors, (req,res)=>RidersAuth.uploadToCloudinaryAndDatabase(req,res))
 router.post("/signin", (req, res) => RidersAuth.signin(req, res));
+router.post("/forgot_password", (req,res) => RidersAuth.forgotPassword(req,res))
+router.post("/validate_reset_token/:token", (req, res) => RidersAuth.validateResetToken(req, res));
+router.post("/reset_password/:token", (req,res) => RidersAuth.resetPassword(req,res))
+
 
 module.exports = router;
