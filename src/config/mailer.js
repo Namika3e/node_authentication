@@ -30,7 +30,7 @@ const sendEmail = async (options) => {
     console.log("Message sent: %s", info.messageId.blue);
     return true;
   } catch (err) {
-    console.log("Error sending email");
+    console.log(err, "Error sending email");
     return false;
   }
 };

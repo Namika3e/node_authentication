@@ -113,7 +113,6 @@ class vendorsAuth {
       }
 
       const PUID = dataValues.public_unique_Id;
-      console.log(PUID, "PUID")
       const accessToken = JWT.sign(
         { PUID },
         process.env.ACCESS_TOKEN_SECRET_KEY,
@@ -142,6 +141,97 @@ class vendorsAuth {
       return res.status(500).json({ error });
     }
   }
+
+  static async forgotPassword(req, res) {
+    try {
+      const { email } = req.body;
+      const user = await vendorModel.findOne({
+        where: { email: email },
+      });
+      console.log(user, "user");
+      if (user) {
+        const emailToken = JWT.sign(
+          { email },
+          process.env.FORGOT_PASSWORD_SECRET,
+          {
+            expiresIn: "10s",
+            algorithm: "HS256",
+          }
+        );
+        const message = `Follow the link to reset your password. This link is valid for 10 minutes \n
+        ${process.env.CLIENT_FRONTEND_URL}/client/vendor/reset_password/${emailToken} \n 
+        If you did not make a password reset request, please ignore this email`;
+
+        await sendEmail({
+          receiverEmail: email,
+          subject: "Email Verification",
+          message: message,
+        });
+        return res.status(200).json({ success: true, message: "Email sent" });
+      } else if (user === null) {
+        return res
+          .status(400)
+          .json({
+            success: false,
+            message:
+              "Email is not associated with an account, enter a correct email",
+          });
+      }
+    } catch (err) {
+      console.log(err, "err");
+
+      return res.status(500).json("something went wrong");
+    }
+  }
+
+  static async validateResetToken(req, res) {
+    const { token } = req.params;
+    try {
+      const isTokenValid = JWT.verify(
+        token,
+        process.env.FORGOT_PASSWORD_SECRET
+      );
+
+      if (isTokenValid) {
+        return res.status(200).json({ valid: true, message: "token is valid" });
+      }
+    } catch (error) {
+      if (error.name === "TokenExpiredError") {
+        res.status(401).json({ valid: false, message: "Token has expired" });
+      } else {
+        res.status(400).json({ valid: false, message: "Invalid token" });
+      }
+    }
+  }
+
+  static async resetPassword(req, res) {
+    const t = await sequelize.transaction();
+    const token = req.params.token;
+    const { email } = JWT.verify(token, process.env.FORGOT_PASSWORD_SECRET);
+    const { newPassword, confirmPassword } = req.body;
+    
+    try {
+      if (newPassword === confirmPassword) {
+        const hashedPassword = await bcrypt.hash(newPassword, 12)
+        const updatePassword = await vendorModel.update(
+          { password: hashedPassword},
+          {
+            where: { email: email },
+            transaction: t,
+          }
+        );
+      } else return res.status(400).json({success:false, message: "passwords do not match"})
+
+      await t.commit();
+      return res.status(200).json({success:true, message:"Password change successful"})
+    } catch (error) {
+      await t.rollback();
+      console.log(error, "error")
+
+      return res.status(500).json({success:false, message:"Password change unsuccessful"})
+    }
+  }
+
 }
 
 module.exports = vendorsAuth;

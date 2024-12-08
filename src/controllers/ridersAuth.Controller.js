@@ -87,7 +87,7 @@ class RidersAuth {
           this.setCookieForImmediateUpload(req, res, tempId);
           const message = `your password is ${randomPassword}`;
           await sendEmail({
-            receiverEmail: data.email,
+            receiverEmail: email,
             subject: "Email Verification",
             message: message,
           });
@@ -186,7 +186,6 @@ class RidersAuth {
         const riderModeOfId = data[1].public_id.includes("ID_image")
           ? data[1].secure_url
           : data[0].secure_url;
-        console.log("evqbgwfadsvcwd qewdVA ");
         await this.saveUploadURLToDb(tempId, riderVehicle, riderModeOfId, res);
       } else {
         return res
@@ -261,18 +260,21 @@ class RidersAuth {
   // }
 
   static async signin(req, res) {
+
+    
     try {
       const { email, password } = req.body;
 
       const rider = await riderModel.findOne({
+        attributes: ["password"],
         where: { email: email },
       });
-
+      console.log(rider, "rider")
       if (!rider) {
         return responseHandler.notfound(res, "Incorrect Email or Password");
       }
 
-      const valid = await bcrypt.compare(password, rider.password);
+      const valid = await bcrypt.compare(password, rider.dataValues.password);
 
       if (!valid) {
         return responseHandler.notfound(res, "Incorrect Email or Password");
@@ -302,7 +304,9 @@ class RidersAuth {
 
       return res.status(200).json({ success: "true" });
     } catch (error) {
+      console.log(error, "error")
       return res.status(500).json({ error });
+      
     }
   }
 
@@ -312,18 +316,18 @@ class RidersAuth {
       const user = await riderModel.findOne({
         where: { email: email },
       });
-console.log(user, "user")
+      console.log(user, "user");
       if (user) {
         const emailToken = JWT.sign(
           { email },
           process.env.FORGOT_PASSWORD_SECRET,
           {
-            expiresIn: "10s",
+            expiresIn: "10m",
             algorithm: "HS256",
           }
         );
         const message = `Follow the link to reset your password. This link is valid for 10 minutes \n
-        ${process.env.CLIENT_FRONTEND_URL}/client/rider/reset_password?token=${emailToken} \n 
+        ${process.env.CLIENT_FRONTEND_URL}/client/rider/reset_password/${emailToken} \n 
         If you did not make a password reset request, please ignore this email`;
 
         await sendEmail({
@@ -331,60 +335,83 @@ console.log(user, "user")
           subject: "Email Verification",
           message: message,
         });
-        return res.status(200).json({success:true, message: "Email sent"})
-      } else if (user === null){
-        return res.status(400).json({success:false, message: "Email is not associated with an account, enter a correct email"})
+        return res.status(200).json({ success: true, message: "Email sent" });
+      } else if (user === null) {
+        return res
+          .status(400)
+          .json({
+            success: false,
+            message:
+              "Email is not associated with an account, enter a correct email",
+          });
       }
     } catch (err) {
-      console.log(err,'err')
+      console.log(err, "err");
 
       return res.status(500).json("something went wrong");
     }
   }
 
-  static async validateResetToken(req,res) {
-    const {token} = req.params;
-     try {
-      const isTokenValid = JWT.verify(token, process.env.FORGOT_PASSWORD_SECRET);
+  static async validateResetToken(req, res) {
+    const { token } = req.params;
+    try {
+      const isTokenValid = JWT.verify(
+        token,
+        process.env.FORGOT_PASSWORD_SECRET
+      );
 
       if (isTokenValid) {
-        return res.status(200).json({valid: true, message: "token is valid"})
-      } 
-     } catch(error) {
-      if (error.name === 'TokenExpiredError') {
-        res.status(401).json({ valid: false, message: 'Token has expired' });
-      } else {
-        res.status(400).json({ valid: false, message: 'Invalid token' });
+        return res.status(200).json({ valid: true, message: "token is valid" });
       }
-     }
-  }
-
-  static async resetPassword(req, res) {
-    //grweqhtwreywterwe
-    const token = req.params.token;
-
-    const email = JWT.verify(token, process.env.FORGOT_PASSWORD_SECRET);
-    const { new_password, confirm_password } = req.body;
-
-    if (new_password === confirm_password) {
-      const user = await riderModel.findOne({
-        where: { email: email },
-      });
+    } catch (error) {
+      if (error.name === "TokenExpiredError") {
+        res.status(401).json({ valid: false, message: "Token has expired" });
+      } else {
+        res.status(400).json({ valid: false, message: "Invalid token" });
+      }
     }
   }
 
-  static async getNewRefreshToken(res) {
-    const refreshToken = JWT.sign({}, process.env.REFRESH_TOKEN_SECRET_KEY, {
-      expiresIn: "1d",
-      algorithm: "HS256",
-    });
+  static async resetPassword(req, res) {
+    const t = await sequelize.transaction();
+    const token = req.params.token;
+    const { email } = JWT.verify(token, process.env.FORGOT_PASSWORD_SECRET);
+    const { newPassword, confirmPassword } = req.body;
+    
+    try {
+      if (newPassword === confirmPassword) {
+        const hashedPassword = await bcrypt.hash(newPassword, 12)
+        const updatePassword = await riderModel.update(
+          { password: hashedPassword},
+          {
+            where: { email: email },
+            transaction: t,
+          }
+        );
+      } else return res.status(400).json({success:false, message: "passwords do not match"})
 
-    const cookie = res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-    });
+      await t.commit();
+      return res.status(200).json({success:true, message:"Password change successful"})
+    } catch (error) {
+      await t.rollback();
+      console.log(error, "error")
+
+      return res.status(500).json({success:false, message:"Password change unsuccessful"})
+    }
   }
+
+  // static async getNewRefreshToken(res) {
+  //   const refreshToken = JWT.sign({}, process.env.REFRESH_TOKEN_SECRET_KEY, {
+  //     expiresIn: "1d",
+  //     algorithm: "HS256",
+  //   });
+
+  //   const cookie = res.cookie("refreshToken", refreshToken, {
+  //     httpOnly: true,
+  //     secure: true,
+  //     sameSite: "none",
+  //   });
+  // }
 }
 
 module.exports = RidersAuth;

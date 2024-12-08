@@ -29,7 +29,7 @@ router.post("/signup", testing, (req, res) => RidersAuth.signup(req, res));
 router.post("/upload",  upload.fields([{name:'vehicle_image',maxCount:1 },{name:'ID_image',maxCount:1 } ]), catchMulterErrors, (req,res)=>RidersAuth.uploadToCloudinaryAndDatabase(req,res))
 router.post("/signin", (req, res) => RidersAuth.signin(req, res));
 router.post("/forgot_password", (req,res) => RidersAuth.forgotPassword(req,res))
-router.post("/validate_reset_token/:token", (req, res) => RidersAuth.validateResetToken(req, res));
+router.get("/validate_reset_token/:token", (req, res) => RidersAuth.validateResetToken(req, res));
 router.post("/reset_password/:token", (req,res) => RidersAuth.resetPassword(req,res))
 
 
