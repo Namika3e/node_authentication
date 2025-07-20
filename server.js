@@ -29,27 +29,47 @@ app.use(express.json());
 app.use(helmet());
 
 const port = process.env.PORT || 4040;
-const startServer = async () => {
-  try {
-    // Try to authenticate the Sequelize connection
-    await sequelize.authenticate();
-    // await initializeRedisClient();
-    console.log("Database connection established successfully.");
 
-    // Start the server if connection is successful
-    const server = http.createServer(app);
-    app.listen(port, () => {
+const server = http.createServer(app);
+
+
+     server.listen(port, async () => {
       console.log(colors.random("Application listening on port 4040"));
+      try {
+        await sequelize.authenticate();
+    // await initializeRedisClient();
+      console.log("Database connection established successfully.");
+      } catch (error) {
+        console.error("Unable to connect to the database:", error.message);
+      }
+
     });
-  } catch (error) {
-    console.error("Unable to connect to the database:", error);
-  }
+
+
+
+    const shutdown = async (signal) => {
+  console.log(`\nReceived ${signal}. Closing server...`);
+
+  // Stop accepting new requests
+  server.close(async () => {
+    console.log('HTTP server closed.');
+
+    try {
+      await sequelize.close(); // Gracefully close Sequelize pool
+      console.log('Sequelize connection pool closed.');
+      process.exit(0);
+    } catch (err) {
+      console.error('Error closing Sequelize:', err);
+      process.exit(1);
+    }
+  });
 };
+
+
+process.on('SIGINT', () => shutdown('SIGINT'));   // Ctrl+C
+process.on('SIGTERM', () => shutdown('SIGTERM')); // e.g., Docker stop
 
 app.use("/auth_service/api/riders", ridersAuthRoute);
 app.use("/auth_service/api/vendors", vendorsAuthRoute);
 
 
-
-
-startServer();
