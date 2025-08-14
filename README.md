@@ -1,5 +1,5 @@
 # 🚀 Riders Authentication API  
-*A secure Node.js microservice for Havesta riders, featuring JWT auth, Redis, PostgreSQL, and rate-limiting.*  
+*A secure Node.js microservice featuring JWT auth, Redis, PostgreSQL, and rate-limiting, with image upload*  
 
 [![ISC License](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
 [![Node.js](https://img.shields.io/badge/Node.js->=18-green.svg)](https://nodejs.org/)
