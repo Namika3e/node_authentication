@@ -285,22 +285,15 @@ class RidersAuth {
         process.env.ACCESS_TOKEN_SECRET_KEY,
         { algorithm: "HS256", expiresIn: "15m" }
       );
-      const refreshToken = JWT.sign({}, process.env.REFRESH_TOKEN_SECRET_KEY, {
-        expiresIn: "1d",
-        algorithm: "HS256",
-      });
+
 
       const accessTokenCookie = res.cookie("accessToken", accessToken, {
         httpOnly: true,
-        secure: true,
-        sameSite: "none",
+        secure: false,//for development only. Set to true in production
+        sameSite: "none" //  Set to lax or strict in production if your client and server are on the same domain.
       });
 
-      const refreshTokenCookie = res.cookie("refreshToken", refreshToken, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
-      });
+
 
       return res.status(200).json({ success: "true" });
     } catch (error) {
@@ -400,18 +393,7 @@ class RidersAuth {
     }
   }
 
-  // static async getNewRefreshToken(res) {
-  //   const refreshToken = JWT.sign({}, process.env.REFRESH_TOKEN_SECRET_KEY, {
-  //     expiresIn: "1d",
-  //     algorithm: "HS256",
-  //   });
 
-  //   const cookie = res.cookie("refreshToken", refreshToken, {
-  //     httpOnly: true,
-  //     secure: true,
-  //     sameSite: "none",
-  //   });
-  // }
 }
 
 module.exports = RidersAuth;
